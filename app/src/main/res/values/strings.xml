@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">MediaPlayer</string>
+    <string name="empty_list">Cannot access any songs</string>
+</resources>
