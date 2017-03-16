@@ -25,13 +25,14 @@
         android:textSize="22sp"
         android:text="@string/empty_list" />
 
+
     <LinearLayout
+        android:id="@+id/button_panel"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="0.2"
         android:orientation="horizontal"
-        android:gravity="center"
-        android:padding="16dp">
+        android:gravity="center">
 
         <ImageButton
             android:id="@+id/previous_song"
@@ -39,7 +40,7 @@
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
             android:layout_weight="1"
-            android:background="@xml/background"
+            android:background="?android:attr/selectableItemBackground"
             app:srcCompat="@android:drawable/ic_media_previous" />
 
         <ImageButton
@@ -48,7 +49,7 @@
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
             android:layout_weight="1"
-            android:background="@xml/background"
+            android:background="?android:attr/selectableItemBackground"
             app:srcCompat="@android:drawable/ic_media_play" />
 
         <ImageButton
@@ -57,7 +58,7 @@
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
             android:layout_weight="1"
-            android:background="@xml/background"
+            android:background="?android:attr/selectableItemBackground"
             app:srcCompat="@android:drawable/ic_media_next" />
     </LinearLayout>
 

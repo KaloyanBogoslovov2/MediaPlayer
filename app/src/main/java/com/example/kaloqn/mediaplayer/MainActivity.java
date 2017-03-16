@@ -2,6 +2,7 @@ package com.example.kaloqn.mediaplayer;
 
 import android.Manifest;
 import android.content.ContentUris;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.media.AudioManager;
@@ -15,10 +16,13 @@ import android.support.v4.content.ContextCompat;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
 import android.support.v7.app.AppCompatActivity;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ImageButton;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -27,21 +31,22 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+import static com.example.kaloqn.mediaplayer.Constants.COL_DISPLAY_NAME;
+import static com.example.kaloqn.mediaplayer.Constants.COL_ID;
+import static com.example.kaloqn.mediaplayer.Constants.FORMAT_MUSIC;
+import static com.example.kaloqn.mediaplayer.Constants.FORMAT_VIDEO;
+import static com.example.kaloqn.mediaplayer.Constants.MEDIA_LOADER;
+import static com.example.kaloqn.mediaplayer.Constants.MUSIC_SELECTION;
+import static com.example.kaloqn.mediaplayer.Constants.MUSIC_URI;
+import static com.example.kaloqn.mediaplayer.Constants.MY_PERMISSIONS_REQUEST_MP3_FILES;
+import static com.example.kaloqn.mediaplayer.Constants.PROJECTION;
+import static com.example.kaloqn.mediaplayer.Constants.VIDEO_SELECTION;
+import static com.example.kaloqn.mediaplayer.Constants.VIDEO_URI;
+
 
 public class MainActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Cursor>{
-    private static final int MY_PERMISSIONS_REQUEST_MP3_FILES=0;
-    private static final int SONGS_LOADER = 1;
 
-    private static final String[] PROJECTION = {
-            MediaStore.Audio.Media._ID,
-            MediaStore.Audio.Media.DATA,
-            MediaStore.Audio.Media.DISPLAY_NAME
-    };
-
-    private static final int COL_ID = 0;
-    private static final int COL_DATA = 1;
-    private static final int COL_DISPLAY_NAME = 2;
-
+    public static String currentFormatType =FORMAT_MUSIC;
     private static boolean playButtonPressed = false;
     private static HashMap<String, Uri> songsList = new HashMap<String, Uri>();
     private static MediaPlayer mediaPlayer=null;
@@ -55,17 +60,64 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     private Uri prevSong = null;
     private Uri nextSong = null;
     private ArrayList<String> allSongsNames= null;
+    private LinearLayout buttonPanel;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
+        buttonPanel = (LinearLayout) findViewById(R.id.button_panel);
         playButton = (ImageButton) findViewById(R.id.play_stop_song);
 
         initListView();
         checkForPermissionsAndLoadSongs();
         }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.change_data_format,menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        int id= item.getItemId();
+
+        if(id==R.id.change_data_format){
+
+            Bundle formatBundle = new Bundle();
+            if(currentFormatType.equals(FORMAT_MUSIC)){
+                currentFormatType = FORMAT_VIDEO;
+                formatBundle.putString("uri", VIDEO_URI.toString());
+                formatBundle.putString("selection",VIDEO_SELECTION);
+
+                if (mediaPlayer!=null && mediaPlayer.isPlaying()) {
+                    playButton.setImageResource(android.R.drawable.ic_media_play);
+                    mediaPlayer.pause();
+                    playButtonPressed = false;
+                }
+                buttonPanel.setVisibility(LinearLayout.GONE);
+
+                Toast.makeText(this,"Format type changed to video",Toast.LENGTH_SHORT).show();
+                getSupportLoaderManager().restartLoader(MEDIA_LOADER, formatBundle, this);
+            }else if (currentFormatType.equals(FORMAT_VIDEO)){
+                buttonPanel.setVisibility(LinearLayout.VISIBLE);
+                currentFormatType = FORMAT_MUSIC;
+                formatBundle.putString("uri", MUSIC_URI.toString());
+                formatBundle.putString("selection", MUSIC_SELECTION);
+
+                //buttonPanel.setVisibility(LinearLayout.);
+
+                Toast.makeText(this,"Format type changed to music",Toast.LENGTH_SHORT).show();
+                getSupportLoaderManager().restartLoader(MEDIA_LOADER, formatBundle, this);
+            }
+
+            return true;
+        }
+
+        return super.onOptionsItemSelected(item);
+    }
+
 
     private void initListView(){
 
@@ -84,21 +136,44 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
 
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int position, long l) {
+
                 try {
                         String songName =(String) adapterView.getItemAtPosition(position);
-                        Uri songUri = songsList.get(songName);
+                    if (songName.equals("Loading..."))return;
+                        final Uri songUri = songsList.get(songName);
+                    if (currentFormatType.equals(FORMAT_VIDEO)){
 
-                    if (mediaPlayer==null) {
-                        mediaPlayer = new MediaPlayer();
-                        mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
-                        mediaPlayer.setDataSource(getApplicationContext(), songUri);
-                        mediaPlayer.prepare();
-                        mediaPlayer.start();
-                        playButton.setImageResource(android.R.drawable.ic_media_pause);
-                        playButtonPressed = true;
+                        Intent intent = new Intent(MainActivity.this,VideoActivity.class);
+                        intent.putExtra("uri",songUri.toString());
+                        startActivity(intent);
 
-                    }else {
-                        startDifferentSong(songUri);
+                    }else{
+                        if (mediaPlayer==null) {
+                            mediaPlayer = new MediaPlayer();
+                            mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
+                            mediaPlayer.setDataSource(getApplicationContext(), songUri);
+                            mediaPlayer.prepare();
+                            mediaPlayer.start();
+                            playButton.setImageResource(android.R.drawable.ic_media_pause);
+                            playButtonPressed = true;
+                            mediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener(){
+
+                                @Override
+                                public void onCompletion(MediaPlayer mp) {
+                                    if (nextSong==null)return;
+                                    if (allSongsNames!=null&&currentSongNumber>0){
+                                        currentSongNumber++;
+                                        if (currentSongNumber<totalSongs){
+                                            nextSong = songsList.get(allSongsNames.get(currentSongNumber));
+                                            prevSong = songsList.get(allSongsNames.get(currentSongNumber-1));
+                                        }
+                                    }
+                                    startDifferentSong(nextSong);
+                                }
+                            });
+                        }else {
+                            startDifferentSong(songUri);
+                        }
                     }
 
                     if (position>1&&position< totalSongs)prevSong = songsList.get(adapterView.getItemAtPosition(position-1));
@@ -135,7 +210,20 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
                     new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
                     MY_PERMISSIONS_REQUEST_MP3_FILES);
         }else{
-            getSupportLoaderManager().initLoader(SONGS_LOADER, null, this);
+
+            if (currentFormatType.equals(FORMAT_MUSIC)) {
+                buttonPanel.setVisibility(LinearLayout.VISIBLE);
+                Bundle formatBundle = new Bundle();
+                formatBundle.putString("uri", MUSIC_URI.toString());
+                formatBundle.putString("selection", MUSIC_SELECTION);
+                getSupportLoaderManager().initLoader(MEDIA_LOADER, formatBundle, this);
+            }else if (currentFormatType.equals(FORMAT_VIDEO)){
+                buttonPanel.setVisibility(LinearLayout.GONE);
+                Bundle formatBundle = new Bundle();
+                formatBundle.putString("uri", VIDEO_URI.toString());
+                formatBundle.putString("selection", VIDEO_SELECTION);
+                getSupportLoaderManager().initLoader(MEDIA_LOADER, formatBundle, this);
+            }
         }
     }
 
@@ -147,7 +235,19 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
             case MY_PERMISSIONS_REQUEST_MP3_FILES: {
                 if (grantResults.length > 0
                         && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    getSupportLoaderManager().initLoader(SONGS_LOADER, null, this);
+                    if (currentFormatType.equals(FORMAT_MUSIC)) {
+                        buttonPanel.setVisibility(LinearLayout.VISIBLE);
+                        Bundle formatBundle = new Bundle();
+                        formatBundle.putString("uri", MUSIC_URI.toString());
+                        formatBundle.putString("selection", MUSIC_SELECTION);
+                        getSupportLoaderManager().initLoader(MEDIA_LOADER, formatBundle, this);
+                    }else if (currentFormatType.equals(FORMAT_VIDEO)){
+                        buttonPanel.setVisibility(LinearLayout.GONE);
+                        Bundle formatBundle = new Bundle();
+                        formatBundle.putString("uri", VIDEO_URI.toString());
+                        formatBundle.putString("selection", VIDEO_SELECTION);
+                        getSupportLoaderManager().initLoader(MEDIA_LOADER, formatBundle, this);
+                    }
                 } else {
                     Toast.makeText(this,"permission denied",Toast.LENGTH_SHORT).show();
                 }
@@ -157,7 +257,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     }
 
     public void changeToPreviousSong(View v){
-        if(prevSong==null)return;
+        if(prevSong==null||currentFormatType.equals(FORMAT_VIDEO))return;
 
         if (allSongsNames!=null&&currentSongNumber>0){
             currentSongNumber--;
@@ -170,7 +270,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     }
 
     public void playStopSong(View v){
-        if (mediaPlayer==null)return;
+        if (mediaPlayer==null||currentFormatType.equals(FORMAT_VIDEO))return;
         if (playButtonPressed){
             //stop song
             playButton.setImageResource(android.R.drawable.ic_media_play);
@@ -183,9 +283,9 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
             playButtonPressed = true;
         }
     }
-    
+
     public void changeToNextSong(View v){
-        if (nextSong==null)return;
+        if (nextSong==null||currentFormatType.equals(FORMAT_VIDEO))return;
         if (allSongsNames!=null&&currentSongNumber>0){
             currentSongNumber++;
             if (currentSongNumber<totalSongs){
@@ -199,8 +299,8 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
 
     @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
-        Uri uri = android.provider.MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
-        String selection = MediaStore.Audio.Media.IS_MUSIC + " != 0";
+        Uri uri = Uri.parse(args.getString("uri"));
+        String selection = args.getString("selection");
 
         return new CursorLoader(this,
                 uri,
@@ -217,8 +317,12 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
             do {
                 String songName = cursor.getString(COL_DISPLAY_NAME);
                 long songId = cursor.getLong(COL_ID);
-                Uri songUri = ContentUris.withAppendedId(android.provider.MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, songId);
-
+                Uri songUri=null;
+                if (currentFormatType.equals(FORMAT_MUSIC)) {
+                    songUri = ContentUris.withAppendedId(android.provider.MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, songId);
+                }else if (currentFormatType.equals(FORMAT_VIDEO)){
+                    songUri = ContentUris.withAppendedId(android.provider.MediaStore.Video.Media.EXTERNAL_CONTENT_URI, songId);
+                }
                 songsList.put(songName,songUri);
                 allSongsNames.add(songName);
             } while (cursor.moveToNext());
@@ -228,13 +332,15 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     }
 
     private void updateAdapter(){
-        ArrayAdapter<String> adapter= new ArrayAdapter<String>(
-                this,
-                R.layout.file_name,
-                R.id.file_name_text_view,
-                allSongsNames
-        );
-        listView.setAdapter(adapter);
+
+            ArrayAdapter<String> adapter = new ArrayAdapter<String>(
+                    this,
+                    R.layout.file_name,
+                    R.id.file_name_text_view,
+                    allSongsNames
+            );
+            listView.setAdapter(adapter);
+
     }
 
     @Override
