@@ -37,28 +37,19 @@
         <ImageButton
             android:id="@+id/previous_song"
             android:onClick="changeToPreviousSong"
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:background="?android:attr/selectableItemBackground"
+            style="@style/imageButton"
             app:srcCompat="@android:drawable/ic_media_previous" />
 
         <ImageButton
             android:id="@+id/play_stop_song"
             android:onClick="playStopSong"
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:background="?android:attr/selectableItemBackground"
+            style="@style/imageButton"
             app:srcCompat="@android:drawable/ic_media_play" />
 
         <ImageButton
             android:id="@+id/next_song"
             android:onClick ="changeToNextSong"
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:background="?android:attr/selectableItemBackground"
+            style="@style/imageButton"
             app:srcCompat="@android:drawable/ic_media_next" />
     </LinearLayout>
 
