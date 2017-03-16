@@ -101,9 +101,9 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
                         startDifferentSong(songUri);
                     }
 
-//                    if (position>1&&position< totalSongs)prevSong = songsList.get(adapterView.getItemAtPosition(position-1));
-//                    if (position>0&&position< totalSongs)nextSong = songsList.get(adapterView.getItemAtPosition(position+1));
-//                    currentSongNumber = position;
+                    if (position>1&&position< totalSongs)prevSong = songsList.get(adapterView.getItemAtPosition(position-1));
+                    if (position>0&&position< totalSongs)nextSong = songsList.get(adapterView.getItemAtPosition(position+1));
+                    currentSongNumber = position;
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -155,17 +155,18 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
             }
         }
     }
-    //To be finished
+
     public void changeToPreviousSong(View v){
         if(prevSong==null)return;
+
+        if (allSongsNames!=null&&currentSongNumber>0){
+            currentSongNumber--;
+            if (currentSongNumber<totalSongs){
+                prevSong = songsList.get(allSongsNames.get(currentSongNumber));
+                nextSong = songsList.get(allSongsNames.get(currentSongNumber+1));
+            }
+        }
         startDifferentSong(prevSong);
-//        if (allSongsNames!=null&&currentSongNumber>0){
-//            currentSongNumber--;
-//            if (currentSongNumber<totalSongs){
-//                prevSong = songsList.get(allSongsNames.get(currentSongNumber));
-//                nextSong = songsList.get(allSongsNames.get(currentSongNumber+1));
-//            }
-//        }
     }
 
     public void playStopSong(View v){
@@ -182,17 +183,17 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
             playButtonPressed = true;
         }
     }
-    //To be finished
+    
     public void changeToNextSong(View v){
         if (nextSong==null)return;
+        if (allSongsNames!=null&&currentSongNumber>0){
+            currentSongNumber++;
+            if (currentSongNumber<totalSongs){
+                nextSong = songsList.get(allSongsNames.get(currentSongNumber));
+                prevSong = songsList.get(allSongsNames.get(currentSongNumber-1));
+            }
+        }
         startDifferentSong(nextSong);
-//        if (allSongsNames!=null&&currentSongNumber>0){
-//            currentSongNumber++;
-//            if (currentSongNumber<totalSongs){
-//                nextSong = songsList.get(allSongsNames.get(currentSongNumber));
-//                prevSong = songsList.get(allSongsNames.get(currentSongNumber-1));
-//            }
-//            }
 
     }
 
