@@ -133,7 +133,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
                 this,
                 R.layout.file_name,
                 R.id.file_name_text_view,
-                new String[]{"Loading..."}
+                new String[]{}
         );
 
         listView = (ListView) findViewById(R.id.files_list);

@@ -1,5 +1,5 @@
 <resources>
     <string name="app_name">MediaPlayer</string>
-    <string name="empty_list">Cannot access any songs</string>
+    <string name="empty_list">Cannot access any media</string>
     <string name="change_format">Change format</string>
 </resources>
