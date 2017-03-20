@@ -9,6 +9,7 @@ import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
 import android.provider.MediaStore;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.LoaderManager;
@@ -24,12 +25,15 @@ import android.widget.ArrayAdapter;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.ListView;
+import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Random;
 
 import static com.example.kaloqn.mediaplayer.Constants.COL_DISPLAY_NAME;
 import static com.example.kaloqn.mediaplayer.Constants.COL_ID;
@@ -61,6 +65,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     private Uri nextSong = null;
     private ArrayList<String> allSongsNames= null;
     private LinearLayout buttonPanel;
+    private Handler mHandler = new Handler();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -147,16 +152,16 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
 
                 String songName =(String) adapterView.getItemAtPosition(position);
                 if (songName.equals("Loading..."))return;
-                final Uri songUri = songsList.get(songName);
+                final Uri mediaUri = songsList.get(songName);
 
                 if (currentFormatType.equals(FORMAT_VIDEO)){
                     Intent intent = new Intent(MainActivity.this,VideoActivity.class);
-                    intent.putExtra("uri",songUri.toString());
+                    intent.putExtra("uri",mediaUri.toString());
                     startActivity(intent);
 
                 }else if(currentFormatType.equals(FORMAT_MUSIC)){
                     try {
-                        playMusic(songUri);
+                        playMusic(mediaUri);
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
@@ -173,6 +178,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
             mediaPlayer = new MediaPlayer();
             mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
             mediaPlayer.setDataSource(getApplicationContext(), songUri);
+            initAndSetSeekBar();
             mediaPlayer.prepare();
             mediaPlayer.start();
 
@@ -188,6 +194,36 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         }else {
             startDifferentSong(songUri);
         }
+    }
+
+    private void initAndSetSeekBar(){
+        final SeekBar seekBar = (SeekBar) findViewById(R.id.seek_bar);
+        MainActivity.this.runOnUiThread(new Runnable() {
+
+            @Override
+            public void run() {
+                if(mediaPlayer != null){
+                    int mCurrentPosition = mediaPlayer.getCurrentPosition() / 1000;
+                    seekBar.setProgress(mCurrentPosition);
+                }
+                mHandler.postDelayed(this, 1000);
+            }
+        });
+
+        seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+            }
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+            }
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                if(mediaPlayer != null && fromUser){
+                    mediaPlayer.seekTo(progress * 1000);
+                }
+            }
+        });
     }
 
     private void setPlayButtonPlaying(){
@@ -287,6 +323,24 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
             }
         }
         startDifferentSong(prevSong);
+    }
+
+    //change to random song
+    public void changeToRandomSong(View v){
+
+        Uri songUri = getRandomSongUri();
+        try {
+            playMusic(songUri);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    private Uri getRandomSongUri(){
+        List<Uri> valuesList = new ArrayList<Uri>(songsList.values());
+        int randomIndex = new Random().nextInt(valuesList.size());
+        return valuesList.get(randomIndex);
     }
 
     //play/stop button

@@ -25,7 +25,11 @@
         android:textSize="22sp"
         android:text="@string/empty_list" />
 
-
+    <SeekBar
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/seek_bar"
+        />
     <LinearLayout
         android:id="@+id/button_panel"
         android:layout_width="match_parent"
@@ -39,6 +43,12 @@
             android:onClick="changeToPreviousSong"
             style="@style/imageButton"
             app:srcCompat="@android:drawable/ic_media_previous" />
+
+        <ImageButton
+            android:id="@+id/random_song"
+            android:onClick="changeToRandomSong"
+            style="@style/imageButton"
+            app:srcCompat="@android:drawable/stat_notify_sync" />
 
         <ImageButton
             android:id="@+id/play_stop_song"
