@@ -10,7 +10,6 @@ import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
-import android.provider.MediaStore;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.ContextCompat;
@@ -32,7 +31,6 @@ import android.widget.Toast;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Random;
 
 import static com.example.kaloqn.mediaplayer.Constants.COL_DISPLAY_NAME;
@@ -52,7 +50,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
 
     public static String currentFormatType =FORMAT_MUSIC;
     private static boolean playButtonPressed = false;
-    private static HashMap<String, Uri> songsList = new HashMap<String, Uri>();
+    private static HashMap<String, Uri> songsMap = new HashMap<String, Uri>();
     private static MediaPlayer mediaPlayer=null;
 
     private int totalSongs =0;
@@ -152,7 +150,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
 
                 String songName =(String) adapterView.getItemAtPosition(position);
                 if (songName.equals("Loading..."))return;
-                final Uri mediaUri = songsList.get(songName);
+                final Uri mediaUri = songsMap.get(songName);
 
                 if (currentFormatType.equals(FORMAT_VIDEO)){
                     Intent intent = new Intent(MainActivity.this,VideoActivity.class);
@@ -235,8 +233,8 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         if (allSongsNames!=null&&currentSongNumber>0){
             currentSongNumber++;
             if (currentSongNumber<totalSongs){
-                nextSong = songsList.get(allSongsNames.get(currentSongNumber));
-                prevSong = songsList.get(allSongsNames.get(currentSongNumber-1));
+                nextSong = songsMap.get(allSongsNames.get(currentSongNumber));
+                prevSong = songsMap.get(allSongsNames.get(currentSongNumber-1));
             }
         }
         startDifferentSong(nextSong);
@@ -254,8 +252,8 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     }
 
     private void setPrevAndNextSong(AdapterView<?> adapterView,int position){
-        if (position>1&&position< totalSongs)prevSong = songsList.get(adapterView.getItemAtPosition(position-1));
-        if (position>0&&position< totalSongs)nextSong = songsList.get(adapterView.getItemAtPosition(position+1));
+        if (position>1&&position< totalSongs)prevSong = songsMap.get(adapterView.getItemAtPosition(position-1));
+        if (position>0&&position< totalSongs)nextSong = songsMap.get(adapterView.getItemAtPosition(position+1));
     }
 
 
@@ -318,8 +316,8 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         if (allSongsNames!=null&&currentSongNumber>0){
             currentSongNumber--;
             if (currentSongNumber<totalSongs){
-                prevSong = songsList.get(allSongsNames.get(currentSongNumber));
-                nextSong = songsList.get(allSongsNames.get(currentSongNumber+1));
+                prevSong = songsMap.get(allSongsNames.get(currentSongNumber));
+                nextSong = songsMap.get(allSongsNames.get(currentSongNumber+1));
             }
         }
         startDifferentSong(prevSong);
@@ -328,19 +326,28 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     //change to random song
     public void changeToRandomSong(View v){
 
-        Uri songUri = getRandomSongUri();
+        RandomSong randomSong = getRandomSong();
+        Uri songUri = randomSong.getSongUri();
+        int songIndex = randomSong.getSongNumber();
         try {
             playMusic(songUri);
         } catch (IOException e) {
             e.printStackTrace();
         }
+        if (songIndex>1&&songIndex< totalSongs)prevSong = songsMap.get(allSongsNames.get(songIndex-1));
+        if (songIndex>0&&songIndex< totalSongs)nextSong = songsMap.get(allSongsNames.get(songIndex+1));
+        currentSongNumber = songIndex;
+
 
     }
 
-    private Uri getRandomSongUri(){
-        List<Uri> valuesList = new ArrayList<Uri>(songsList.values());
-        int randomIndex = new Random().nextInt(valuesList.size());
-        return valuesList.get(randomIndex);
+    private RandomSong getRandomSong(){
+        int randomIndex = new Random().nextInt(allSongsNames.size());
+        RandomSong randomSong = new RandomSong();
+        String songName = allSongsNames.get(randomIndex);
+        randomSong.setSongUri(songsMap.get(songName));
+        randomSong.setSongNumber(randomIndex);
+        return randomSong;
     }
 
     //play/stop button
@@ -392,10 +399,10 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
                 }else if (currentFormatType.equals(FORMAT_VIDEO)){
                     songUri = ContentUris.withAppendedId(android.provider.MediaStore.Video.Media.EXTERNAL_CONTENT_URI, songId);
                 }
-                songsList.put(songName,songUri);
+                songsMap.put(songName,songUri);
                 allSongsNames.add(songName);
             } while (cursor.moveToNext());
-            totalSongs = songsList.size();
+            totalSongs = songsMap.size();
             updateAdapter();
         }
     }
