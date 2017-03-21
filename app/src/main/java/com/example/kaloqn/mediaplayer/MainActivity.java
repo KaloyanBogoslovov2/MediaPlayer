@@ -64,6 +64,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     private ArrayList<String> allSongsNames= null;
     private LinearLayout buttonPanel;
     private Handler mHandler = new Handler();
+    private SeekBar seekBar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -176,26 +177,33 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
             mediaPlayer = new MediaPlayer();
             mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
             mediaPlayer.setDataSource(getApplicationContext(), songUri);
-            initAndSetSeekBar();
             mediaPlayer.prepare();
             mediaPlayer.start();
-
+           // initAndSetSeekBar();
             setPlayButtonPlaying();
 
-            mediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener(){
-                @Override
-                public void onCompletion(MediaPlayer mp) {
-                    if (nextSong==null)return;
-                    startNextSong();
-                }
-            });
         }else {
             startDifferentSong(songUri);
         }
+        initAndSetSeekBar();
+        mediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener(){
+            @Override
+            public void onCompletion(MediaPlayer mp) {
+                if (nextSong==null)return;
+                startNextSong();
+            }
+        });
+        mediaPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
+            @Override
+            public void onPrepared(MediaPlayer mp) {
+               // seekBar.setMax(mp.getDuration());
+            }
+        });
     }
 
     private void initAndSetSeekBar(){
-        final SeekBar seekBar = (SeekBar) findViewById(R.id.seek_bar);
+        seekBar = (SeekBar) findViewById(R.id.seek_bar);
+
         MainActivity.this.runOnUiThread(new Runnable() {
 
             @Override
@@ -248,6 +256,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
             mediaPlayer.reset();
             mediaPlayer=MediaPlayer.create(getApplicationContext(), songUri);
             mediaPlayer.start();
+
         }
     }
 
