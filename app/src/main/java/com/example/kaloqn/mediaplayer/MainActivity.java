@@ -51,7 +51,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     public static String currentFormatType =FORMAT_MUSIC;
     private static boolean playButtonPressed = false;
     private static HashMap<String, Uri> songsMap = new HashMap<String, Uri>();
-    private static MediaPlayer mediaPlayer=null;
+    private MediaPlayer mediaPlayer=null;
 
     private int totalSongs =0;
     private int currentSongNumber=0;
@@ -193,17 +193,13 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
                 startNextSong();
             }
         });
-        mediaPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
-            @Override
-            public void onPrepared(MediaPlayer mp) {
-               // seekBar.setMax(mp.getDuration());
-            }
-        });
     }
 
     private void initAndSetSeekBar(){
         seekBar = (SeekBar) findViewById(R.id.seek_bar);
-
+        int a = mediaPlayer.getDuration();
+        Toast.makeText(getApplicationContext(), "a:"+a,Toast.LENGTH_SHORT).show();
+        seekBar.setMax(mediaPlayer.getDuration()/1000);
         MainActivity.this.runOnUiThread(new Runnable() {
 
             @Override
