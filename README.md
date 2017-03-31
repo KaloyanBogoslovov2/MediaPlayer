@@ -4,7 +4,7 @@
 
 Android app that allows you to play your music and videos.
 
-1) Using CursorLoader to get all of the song and video names and uris (currently it's taking only the one on the external storage(SD card))
+1) Using CursorLoader to get all of the songs (or videos) names and uris (currently it's taking only the ones on the external storage(SD card))
 
 2) Using the MediaPlayer class to play the songs
 
