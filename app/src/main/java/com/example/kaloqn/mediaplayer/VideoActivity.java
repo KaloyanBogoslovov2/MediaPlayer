@@ -1,6 +1,5 @@
 package com.example.kaloqn.mediaplayer;
 
-import android.app.ActionBar;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -9,7 +8,7 @@ import android.widget.MediaController;
 import android.widget.VideoView;
 
 /**
- * Created by kaloqn on 3/16/17.
+ * Created by Kaloyan on 3/16/17. The activity where the video is displayed.
  */
 
 public class VideoActivity extends AppCompatActivity {

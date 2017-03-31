@@ -45,7 +45,9 @@ import static com.example.kaloqn.mediaplayer.Constants.PROJECTION;
 import static com.example.kaloqn.mediaplayer.Constants.VIDEO_SELECTION;
 import static com.example.kaloqn.mediaplayer.Constants.VIDEO_URI;
 
-
+/**
+ * Created by kaloqn on 3/21/17.
+ */
 public class MainActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Cursor>{
 
     public static String currentFormatType =FORMAT_MUSIC;
@@ -76,13 +78,14 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
 
         initListView();
         checkForPermissionsAndLoadSongs();
-        }
+    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.change_data_format,menu);
         return true;
     }
+
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
@@ -262,7 +265,6 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     }
 
 
-
     private void checkForPermissionsAndLoadSongs(){
 
         if (ContextCompat.checkSelfPermission(this,
@@ -314,7 +316,10 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         getSupportLoaderManager().initLoader(MEDIA_LOADER, formatBundle, this);
     }
 
-    //change to previous song button
+    /**change to previous song
+     *
+     * @param v: ChangeToPreviousSong button
+     */
     public void changeToPreviousSong(View v){
         if(prevSong==null)return;
 
@@ -328,7 +333,10 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         startDifferentSong(prevSong);
     }
 
-    //change to random song
+    /**change to random song
+     *
+     * @param v: ChangeToRandomSong button
+     */
     public void changeToRandomSong(View v){
 
         RandomSong randomSong = getRandomSong();
@@ -355,7 +363,10 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         return randomSong;
     }
 
-    //play/stop button
+    /**play or stop song
+     *
+     * @param v: PlayStopSong button
+     */
     public void playStopSong(View v){
         if (mediaPlayer==null)return;
         if (playButtonPressed){
@@ -371,7 +382,10 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         }
     }
 
-    //change to next song button
+    /**change to next song
+     *
+     * @param v: changeToNextSong button
+     */
     public void changeToNextSong(View v){
         if (nextSong==null)return;
         startNextSong();
