@@ -7,7 +7,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.widget.MediaController;
 import android.widget.VideoView;
 
-/**
+/** 
  * Created by Kaloyan on 3/16/17. The activity where the video is displayed.
  */
 
