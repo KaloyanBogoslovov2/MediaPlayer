@@ -245,6 +245,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
             }
         }
         startDifferentSong(nextSong);
+
     }
 
     private void startDifferentSong(Uri songUri){
@@ -255,8 +256,15 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
             mediaPlayer.reset();
             mediaPlayer=MediaPlayer.create(getApplicationContext(), songUri);
             mediaPlayer.start();
-
+            initAndSetSeekBar();
         }
+      mediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener(){
+        @Override
+        public void onCompletion(MediaPlayer mp) {
+          if (nextSong==null)return;
+          startNextSong();
+        }
+      });
     }
 
     private void setPrevAndNextSong(AdapterView<?> adapterView,int position){
