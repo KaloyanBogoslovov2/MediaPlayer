@@ -182,7 +182,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
             mediaPlayer.setDataSource(getApplicationContext(), songUri);
             mediaPlayer.prepare();
             mediaPlayer.start();
-           // initAndSetSeekBar();
+   
             setPlayButtonPlaying();
 
         }else {
