@@ -182,7 +182,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
             mediaPlayer.setDataSource(getApplicationContext(), songUri);
             mediaPlayer.prepare();
             mediaPlayer.start();
-   
+
             setPlayButtonPlaying();
 
         }else {
@@ -363,6 +363,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     }
 
     private RandomSong getRandomSong(){
+        if (allSongsNames==null) return null;
         int randomIndex = new Random().nextInt(allSongsNames.size());
         RandomSong randomSong = new RandomSong();
         String songName = allSongsNames.get(randomIndex);
