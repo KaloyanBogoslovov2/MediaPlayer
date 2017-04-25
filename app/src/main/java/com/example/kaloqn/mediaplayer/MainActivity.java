@@ -2,6 +2,7 @@ package com.example.kaloqn.mediaplayer;
 
 import android.Manifest;
 import android.content.ContentUris;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
@@ -16,6 +17,8 @@ import android.support.v4.content.ContextCompat;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
 import android.support.v7.app.AppCompatActivity;
+import android.telephony.PhoneStateListener;
+import android.telephony.TelephonyManager;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -31,6 +34,8 @@ import android.widget.Toast;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Observable;
+import java.util.Observer;
 import java.util.Random;
 
 import static com.example.kaloqn.mediaplayer.Constants.COL_DISPLAY_NAME;
@@ -48,7 +53,7 @@ import static com.example.kaloqn.mediaplayer.Constants.VIDEO_URI;
 /**
  * Created by kaloqn on 3/21/17.
  */
-public class MainActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Cursor>{
+public class MainActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Cursor>, Observer{
 
     public static String currentFormatType =FORMAT_MUSIC;
     private static boolean playButtonPressed = false;
@@ -76,8 +81,10 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         buttonPanel = (LinearLayout) findViewById(R.id.button_panel);
         playButton = (ImageButton) findViewById(R.id.play_stop_song);
 
+        ObservableObject.getInstance().addObserver(this);
         initListView();
         checkForPermissionsAndLoadSongs();
+
     }
 
     @Override
@@ -133,6 +140,31 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         playButtonPressed = false;
     }
 
+    private void setPhoneStateListener(){
+        PhoneStateListener phoneStateListener = new PhoneStateListener() {
+            @Override
+            public void onCallStateChanged(int state, String incomingNumber) {
+                if (state == TelephonyManager.CALL_STATE_RINGING) {
+                    //Incoming call: Pause music
+                    setPlayButtonPaused();
+                    mediaPlayer.pause();
+                } else if(state == TelephonyManager.CALL_STATE_IDLE) {
+                    //Not in call: Play music
+                    setPlayButtonPlaying();
+                    mediaPlayer.start();
+                } else if(state == TelephonyManager.CALL_STATE_OFFHOOK) {
+                    //A call is dialing, active or on hold
+                    setPlayButtonPaused();
+                    mediaPlayer.pause();
+                }
+                super.onCallStateChanged(state, incomingNumber);
+            }
+        };
+        TelephonyManager mgr = (TelephonyManager) getSystemService(TELEPHONY_SERVICE);
+        if(mgr != null) {
+            mgr.listen(phoneStateListener, PhoneStateListener.LISTEN_CALL_STATE);
+        }
+    }
 
     private void initListView(){
 
@@ -184,7 +216,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
             mediaPlayer.start();
 
             setPlayButtonPlaying();
-
+            setPhoneStateListener();
         }else {
             startDifferentSong(songUri);
         }
@@ -452,4 +484,11 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     }
 
 
+    @Override
+    public void update(Observable o, Object arg) {
+        if(mediaPlayer!=null&&mediaPlayer.isPlaying()){
+            setPlayButtonPaused();
+            mediaPlayer.pause();
+        }
+    }
 }
